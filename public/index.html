@@ -1,0 +1,59 @@
+<!DOCTYPE html> 
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>Bank Holiday Checker</title>
+    </head>
+    <body>
+        <script>
+            async function checkBankHolidays() {
+            try {
+                const response = await fetch ('/lookup', {
+                    method: 'POST', 
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        date1: document.getElementById('date1').value,
+                        date2: document.getElementById('date2').value
+                    }),
+                });
+                if (!response.ok) {
+                    console.error('Error:', response.statusText);
+                    document.getElementById('result').innerHTML = `Error: ${response.statusText}`;
+                    return;
+                }
+
+                const result = await response.text();
+                const stringArray = JSON.parse(result);
+                const parsedResult = stringArray.map(item => {
+                    try {
+                        return JSON.parse(item);
+                    } catch (error) {
+                        console.error('Error parsing JSON:', error, 'Item:', item);
+                        return null;
+                }
+            }).filter(item => item !== null);
+            let detailedList = '<ul>';
+            parsedResult.forEach(item => {
+                detailedList += `<li>${item.title} on ${item.date} (Bunting: ${item.bunting ? 'Yes' : 'No'})</li>`;
+            });
+            detailedList += '</ul>';
+            document.getElementById('result').innerHTML = detailedList;
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('result').innerHTML = `Error: ${error.toString()}`;
+            }
+        }
+        </script>
+        <h1>Bank Holiday Checker</h1>
+        <form action="#" method="post" name="bank-holiday-form" id="date-form" onsubmit="event.preventDefault(); checkBankHolidays();">
+            <label for="date">Enter a Start date </label>
+            <input type="date" id="date1" name="dateone" required>
+            <label for="date">Enter an End date </label>
+            <input type="date" id="date2" name="datetwo" required>
+            <button type="submit">Check</button>
+        </form>
+        <div id="result"></div>
+    </body>
+</html>
